@@ -1,11 +1,11 @@
 # FALTO
 
-Device Setting
-#define mqtt_server "192.168.1.2"
-#define mqtt_port 1883
-#define device_name "FALTO_DEV01"
-#define mqtt_topic_data_acc "FALTO_01/sensor/acc"
-#define mqtt_topic_data_gyro "FALTO_01/sensor/gyro"
+Device Setting __
+#define mqtt_server "192.168.1.2" __
+#define mqtt_port 1883 __
+#define device_name "FALTO_DEV01" __
+#define mqtt_topic_data_acc "FALTO_01/sensor/acc" __
+#define mqtt_topic_data_gyro "FALTO_01/sensor/gyro" __
 
 
 mqtt_topic_data_acc output :
