@@ -183,10 +183,12 @@ void sampleRun(){
     dB[1]=float(ay)/200;
     dB[2]=float(az)/200;
     float aa = sqrt((sq(dB[0])+sq(dB[1])+sq(dB[2]))/3);
-    dB[3]=float(aa);
+    dB[3]= aa;
     dB[4]=float(gx)/200;
     dB[5]=float(gy)/200;
     dB[6]=float(gz)/200;
+    float rms_gyro = sqrt((sq(dB[4])+sq(dB[5])+sq(dB[6]))/3);
+    dB[7] = rms_gyro;
     if(1){    
       Serial.print(dB[0]); Serial.print("\t");
       Serial.print(dB[1]); Serial.print("\t");
@@ -194,11 +196,12 @@ void sampleRun(){
       Serial.print(dB[3]); Serial.print("\t");
       Serial.print(dB[4]); Serial.print("\t");
       Serial.print(dB[5]); Serial.print("\t");
-      Serial.println(dB[6]);
+      Serial.println(dB[6]); Serial.print("\t");
+      Serial.println(dB[7]);
     }
     
-    message_acc+=(String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+",");
-    message_gyro += (String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+",");
+    message_acc+=(String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":");
+    message_gyro += (String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+ String(dB[7],2)+":");
     
     if(dBPt>=dPL){
       //message_acc.replace(" ","");
