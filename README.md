@@ -7,6 +7,7 @@ Device Setting <br />
 #define mqtt_topic_data_acc "FALTO_01/sensor/acc" <br />
 #define mqtt_topic_data_gyro "FALTO_01/sensor/gyro" <br />
 
+Sampling 20Hz
 
 # mqtt_topic_data_acc output :
 Format : acc X : acc Y : acc Z : RMS(ROOT MEAN SQUARE) acc, next data .... <br/>
