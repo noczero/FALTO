@@ -13,11 +13,11 @@ int ixL;
 char tempLP[3];
 
 
-char ssid[] = "APTRG-LAB";//type your ssid
-char password[] = "gsglantaidua";//type your password
+char ssid[] = "SAME HOTEL MALANG";//type your ssid
+char password[] = "same5555";//type your password
 
-#define mqtt_server "192.168.1.2"
-#define mqtt_port 1883
+#define mqtt_server "hantamsurga.net"
+#define mqtt_port 49877
 #define device_name "FALTO_DEV01"
 #define mqtt_topic_data_acc "FALTO_01/sensor/acc"
 #define mqtt_topic_data_gyro "FALTO_01/sensor/gyro"
@@ -96,6 +96,13 @@ unsigned long timingLoc=0;
 byte countLD;
 #define sampleInterval 100;
 
+
+// define LED
+#define LED_PIN 2             //Onboard Active-low LED
+#define PWR_PIN 16            //Pin connected to regulator's EN
+#define MFB_INTPIN 13         
+
+
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
@@ -149,7 +156,7 @@ void setNet() {
 }
 
 boolean reconnect() {
-    if (client.connect(device_name)) {
+  if (client.connect(device_name)) {
     //if (client.connect(device_name,mqtt_user,mqtt_password)) {
     //client.subscribe(mqtt_topic_request_location);
   }
@@ -158,7 +165,7 @@ boolean reconnect() {
 
 void clientRun() {
   // Loop until we're reconnected
-    if (!client.connected()) {
+  if (!client.connected()) {
     long now = millis();
     if (now - lastReconnectAttempt > 5000) {
       lastReconnectAttempt = now;
@@ -167,9 +174,10 @@ void clientRun() {
         lastReconnectAttempt = 0;
       }
     }
+    Serial.println("MQTT Connecting...");
   } else {
     // Client connected
-
+    //Serial.println("MQTT Connect...");
     client.loop();
   }
 }
@@ -202,7 +210,7 @@ void sampleRun(){
     
     message_acc+=(String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":");
     message_gyro += (String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+ String(dB[7],2)+":");
-    
+    LED_OFF();
     if(dBPt>=dPL){
       //message_acc.replace(" ","");
       char bufD[message_acc.length()+1];
@@ -222,7 +230,7 @@ void sampleRun(){
       nDP++;
       message_gyro="";
       dBPt=0;
-      
+      LED_ON();
     }
 
     if(dBPt%25==0){
@@ -245,14 +253,68 @@ void sampleRun(){
   }
 }
 
+// ================================================================
+// ===                    LED INDICATOR                         ===
+// ================================================================
 
+void LED_INIT(){
+  digitalWrite(LED_PIN,HIGH);
+  pinMode(LED_PIN,OUTPUT);
+}
+
+void LED(int timeOn){
+  digitalWrite(LED_PIN,LOW);
+  delay(timeOn);
+  digitalWrite(LED_PIN,HIGH);
+}
+
+void LED_ON(){
+  digitalWrite(LED_PIN,LOW);
+}
+void LED_OFF(){
+  digitalWrite(LED_PIN,HIGH);
+}
+
+void LED_BLINK(int onTime,int offTime, int blinkCount){
+  while(blinkCount>0){
+  LED(onTime);
+  delay(offTime);
+  blinkCount--;
+  }
+}
+
+void PWR_INIT(){
+  digitalWrite(PWR_PIN,HIGH);
+  pinMode(16,OUTPUT);
+}
+
+void multiBtn(){
+  LED(500);
+  if(digitalRead(MFB_INTPIN)){
+    delay(500);
+    if(digitalRead(MFB_INTPIN)){
+      LED_BLINK(50,200,3);
+      digitalWrite(16,LOW);
+    }
+  }  
+}
 
 void setup() {
   // put your setup code here, to run once:
-  delay(100);
-  power_on;
-  initPins();
+  delay(200);                   //push time before device really turned on
+  PWR_INIT();
+  LED_INIT();
+  LED(500);
+  Serial.print("Battery Voltage: ");
+  Serial.print(read_battery_voltage());
+
+  attachInterrupt(MFB_INTPIN,multiBtn,RISING);
+
+  //delay(100);
+  //power_on;
+  //initPins();
   //Wire.begin(SDA,SCL);
+
    Wire.begin();
   Wire.beginTransmission(MPU_addr);
   Wire.write(0x6B);  // PWR_MGMT_1 register
@@ -270,11 +332,17 @@ void setup() {
 
 void loop() {
   clientRun();
+  
   sampleRun();
+
   if(timingLoc<millis()){
     timingLoc=millis()+intervalLoc;
     sendLocation=true;
   }
 
 }
+
+
+
+
 
