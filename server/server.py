@@ -14,8 +14,8 @@ import csv
 import numpy as np
 
 # MQTT setup
-broker_host = "192.168.1.2"
-broker_port = 1883
+broker_host = "telemedicine.co.id"
+broker_port = 49560
 mqtt_topic_data_acc = "FALTO_01/sensor/acc"
 mqtt_topic_data_gyro = "FALTO_01/sensor/gyro"
 mqtt_topic_callibration = "FALTO_01/sensor/callib"

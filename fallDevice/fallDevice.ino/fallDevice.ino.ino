@@ -13,14 +13,17 @@ int ixL;
 char tempLP[3];
 
 
-char ssid[] = "SAME HOTEL MALANG";//type your ssid
-char password[] = "same5555";//type your password
+char ssid[] = "Pulse";//type your ssid
+char password[] = "12345678";//type your password
 
-#define mqtt_server "hantamsurga.net"
-#define mqtt_port 49877
-#define device_name "FALTO_DEV01"
+#define mqtt_server "telemedicine.co.id"
+#define mqtt_port 49560
+#define device_name "FALTO_01"
 #define mqtt_topic_data_acc "FALTO_01/sensor/acc"
 #define mqtt_topic_data_gyro "FALTO_01/sensor/gyro"
+#define mqtt_topic_callibration "FALTO_01/sensor/callib"
+#define mqtt_topic_callibration_gyro "FALTO_01/sensor/callib/gyro"
+#define mqtt_topic_callibration_acc "FALTO_01/sensor/callib/acc"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -102,16 +105,43 @@ byte countLD;
 #define PWR_PIN 16            //Pin connected to regulator's EN
 #define MFB_INTPIN 13         
 
-
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
+  String pesan = "";
   for (int i=0;i<length;i++) {
     Serial.print((char)payload[i]);
+  
+    pesan += (char) payload[i];
   }
   Serial.println();
-  sendLocation=true;
+
+
+  // compare the topic to the topic subscribe
+  if (strcmp(topic,mqtt_topic_callibration) == 0) {
+    // check the pesan
+    if(pesan == "walking"){
+      // call walkingCalibration
+      callibration_data();      
+    } else if (pesan == "sit") {
+      // call sit Calibration
+      callibration_data();
+    } else if (pesan == "terlentang") {
+      // call terlentang 
+      callibration_data();
+    }
+  }
+  //sendLocation=true;
+}
+
+/**
+  Publish data to MQTT in easy way
+**/
+char dataPublish[50];
+void publishMQTT(char* topics, String data){
+   data.toCharArray(dataPublish, data.length() + 1);
+   client.publish(topics, dataPublish);
 }
 
 void initPins(){
@@ -147,8 +177,9 @@ void setNet() {
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     rotatL++;
-    byte rotaC=rotatL%3;
-    setLed((rotaC==0),(rotaC==1),(rotaC==2));
+    //byte rotaC=rotatL%3;
+    //setLed((rotaC==0),(rotaC==1),(rotaC==2));
+    LED_BLINK(50,200,3);
     delay(500);
   }
   client.setServer(mqtt_server, mqtt_port);
@@ -158,7 +189,7 @@ void setNet() {
 boolean reconnect() {
   if (client.connect(device_name)) {
     //if (client.connect(device_name,mqtt_user,mqtt_password)) {
-    //client.subscribe(mqtt_topic_request_location);
+    client.subscribe(mqtt_topic_callibration);
   }
   return client.connected();
 }
@@ -182,75 +213,115 @@ void clientRun() {
   }
 }
 
+/**
+  this procedure to sent accelerometer and gyroscope to mqtt broker
+
+  call this on loop()
+**/
 void sampleRun(){
     if(sampleTiming<=millis()){
-    sampleTiming=millis()+sampleInterval;
-    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);   
-    dBPt++;
-    dB[0]=float(ax)/200;
-    dB[1]=float(ay)/200;
-    dB[2]=float(az)/200;
-    float aa = sqrt((sq(dB[0])+sq(dB[1])+sq(dB[2]))/3);
-    dB[3]= aa;
-    dB[4]=float(gx)/200;
-    dB[5]=float(gy)/200;
-    dB[6]=float(gz)/200;
-    float rms_gyro = sqrt((sq(dB[4])+sq(dB[5])+sq(dB[6]))/3);
-    dB[7] = rms_gyro;
-    if(1){    
-      Serial.print(dB[0]); Serial.print("\t");
-      Serial.print(dB[1]); Serial.print("\t");
-      Serial.print(dB[2]); Serial.print("\t");
-      Serial.print(dB[3]); Serial.print("\t");
-      Serial.print(dB[4]); Serial.print("\t");
-      Serial.print(dB[5]); Serial.print("\t");
-      Serial.println(dB[6]); Serial.print("\t");
-      Serial.println(dB[7]);
-    }
-    
-    message_acc+=(String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":");
-    message_gyro += (String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+ String(dB[7],2)+":");
-    LED_OFF();
-    if(dBPt>=dPL){
-      //message_acc.replace(" ","");
-      char bufD[message_acc.length()+1];
-      message_acc.toCharArray(bufD,message_acc.length()+1);
-      client.publish(mqtt_topic_data_acc,bufD);
-       
-      nDP++;
-      message_acc="";
-      dBPt=0;
-
-      // gyro message
-       //message_gyro.replace(" ","");
-      char bufD_gyro[message_gyro.length()+1];
-      message_gyro.toCharArray(bufD_gyro,message_gyro.length()+1);
-      client.publish(mqtt_topic_data_gyro,bufD_gyro);
-       
-      nDP++;
-      message_gyro="";
-      dBPt=0;
-      LED_ON();
-    }
-
-    if(dBPt%25==0){
-      digitalWrite(LED_B,!digitalRead(LED_B));
-      if(!btn_stat)countLD=0;
-      if(btn_stat)countLD++;
-      if(countLD>=3){
-        while(btn_stat){
-          delay(500);
-          digitalWrite(LED_R,!digitalRead(LED_R));            
-        }
-        while(1){
-          pinMode(REG_EN,OUTPUT);
-          power_off;
-          pinMode(REG_EN,INPUT);
-          delay(10);
-        }
+      sampleTiming=millis()+sampleInterval;
+      mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);   
+      dB[0]=float(ax)/200;
+      dB[1]=float(ay)/200;
+      dB[2]=float(az)/200;
+      float aa = sqrt((sq(dB[0])+sq(dB[1])+sq(dB[2]))/3);
+      dB[3]= aa;
+      dB[4]=float(gx)/200;
+      dB[5]=float(gy)/200;
+      dB[6]=float(gz)/200;
+      float rms_gyro = sqrt((sq(dB[4])+sq(dB[5])+sq(dB[6]))/3);
+      dB[7] = rms_gyro;
+  
+      if(1){    
+        Serial.print(dB[0]); Serial.print("\t");
+        Serial.print(dB[1]); Serial.print("\t");
+        Serial.print(dB[2]); Serial.print("\t");
+        Serial.print(dB[3]); Serial.print("\t");
+        Serial.print(dB[4]); Serial.print("\t");
+        Serial.print(dB[5]); Serial.print("\t");
+        Serial.println(dB[6]); Serial.print("\t");
+        Serial.println(dB[7]);
       }
-    }
+    
+      // buffering the sensor data
+      // split the sensor to 2 variable
+      message_acc+=(String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":");
+      message_gyro += (String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+ String(dB[7],2)+":");
+      LED_OFF();
+    
+      // dPL is maximal length of 1 sampling. current : 20
+      if(dBPt == dPL){
+        Serial.println("Increment : " + String(dBPt));
+        Serial.println("Sending data ...");
+        // message_acc.replace(" ","");
+        // this is for accelerometer 
+        char bufD[message_acc.length()+1];
+        message_acc.toCharArray(bufD,message_acc.length()+1);
+        client.publish(mqtt_topic_data_acc,bufD);
+         
+        message_acc="";
+        dBPt=0;
+
+        // gyro message
+         //message_gyro.replace(" ","");
+        char bufD_gyro[message_gyro.length()+1];
+        message_gyro.toCharArray(bufD_gyro,message_gyro.length()+1);
+        client.publish(mqtt_topic_data_gyro,bufD_gyro);
+         
+        message_gyro="";
+        dBPt=0;
+        LED_ON();  // notif the LED_ON
+      }
+
+      dBPt++; // increment
   }
+}
+
+
+void read_MPU_data(){
+  mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);  
+
+  dB[0]=float(ax)/200;
+  dB[1]=float(ay)/200;
+  dB[2]=float(az)/200;
+  float aa = sqrt((sq(dB[0])+sq(dB[1])+sq(dB[2]))/3);
+  dB[3]= aa;
+  dB[4]=float(gx)/200;
+  dB[5]=float(gy)/200;
+  dB[6]=float(gz)/200;
+  float rms_gyro = sqrt((sq(dB[4])+sq(dB[5])+sq(dB[6]))/3);
+  dB[7] = rms_gyro;
+}
+
+void callibration_data(){
+  int count = 0;
+  String data_acc = " " , data_gyro = " ";
+  LED_ON(); // keep LED ON;
+  
+  // buffer until 20
+  while (count < 20) {
+    read_MPU_data();
+    data_acc += (String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":");
+    data_gyro += (String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+String(dB[7],2)+":");
+    count++;
+    Serial.println(count);
+    delay(100);
+  }
+
+  Serial.println(data_acc); 
+  Serial.println(data_gyro);
+
+  char bufD[data_acc.length()+1];
+  data_acc.toCharArray(bufD,data_acc.length()+1);
+  client.publish(mqtt_topic_callibration_acc,bufD);
+  
+  char bufD_gyro[data_gyro.length()+1];
+  data_gyro.toCharArray(bufD_gyro,data_gyro.length()+1);
+  client.publish(mqtt_topic_callibration_gyro,bufD_gyro);
+  //publishMQTT(mqtt_topic_data_acc , data_acc);
+  //publishMQTT(mqtt_topic_data_gyro , data_gyro);
+  LED_OFF();
 }
 
 // ================================================================
@@ -315,7 +386,7 @@ void setup() {
   //initPins();
   //Wire.begin(SDA,SCL);
 
-   Wire.begin();
+  Wire.begin();
   Wire.beginTransmission(MPU_addr);
   Wire.write(0x6B);  // PWR_MGMT_1 register
   Wire.write(0);     // set to zero (wakes up the MPU-6050)
@@ -332,15 +403,10 @@ void setup() {
 
 void loop() {
   clientRun();
-  
   sampleRun();
-
-  if(timingLoc<millis()){
-    timingLoc=millis()+intervalLoc;
-    sendLocation=true;
-  }
-
 }
+
+
 
 
 
