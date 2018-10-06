@@ -16,6 +16,7 @@ import numpy as np
 # MQTT setup
 broker_host = "telemedicine.co.id"
 broker_port = 49560
+device_name = "FALTO_01"
 mqtt_topic_data_acc = "FALTO_01/sensor/acc"
 mqtt_topic_data_gyro = "FALTO_01/sensor/gyro"
 mqtt_topic_callibration = "FALTO_01/sensor/callib"
@@ -25,12 +26,14 @@ mqtt_topic_callibration_acc = "FALTO_01/sensor/callib/acc"
 
 # for log file
 dt = datetime.datetime.now()
+path = 'dataset/'
 logfile = 'fall_prediction-%s-%s-%s.csv' % (dt.day, dt.month, dt.year)
 dataset_file = 'fall_dataset-%s-%s-%s.csv' % (dt.day, dt.month, dt.year)
+
 # csvwrite
 def write_tocsv(data , file) :
     print("save to csv...")
-    with open(file, "a") as output_file:
+    with open(path + file, "a") as output_file:
         writer = csv.writer(output_file, delimiter=',', lineterminator='\r')
         writer.writerow(data)
 
@@ -72,7 +75,7 @@ def on_message(client, userdata, message):
             if (count_incoming == 2):
                 print("One records... acc + gyro")
                 print("Data testing...")
-                print(join_data_testing)
+                #print(join_data_testing)
                 print("Length : " + str(len(join_data_testing)))
                 count_incoming = 0  # reset count incoming
                 join_data_testing = np.array([], dtype=float)  # reset join_data
@@ -80,7 +83,7 @@ def on_message(client, userdata, message):
         # make data set
         elif (message.topic == mqtt_topic_callibration_acc or message.topic == mqtt_topic_callibration_gyro):
             print("Training...")
-            join_data_training = np.hstack((join_data_training, features))
+            #join_data_training = np.hstack((join_data_training, features))
             join_data_training_str = np.hstack((join_data_training_str , signal))
 
             if (count_incoming == 2):
@@ -90,7 +93,7 @@ def on_message(client, userdata, message):
                 join_data_training_str = strip_list_noempty(join_data_training_str) # remove space
                 # save to csv
                 write_tocsv(join_data_training_str,dataset_file)
-                print(join_data_training_str)
+                #print(join_data_training_str)
                 print("Length : " + str(len(join_data_training_str)))
                 count_incoming = 0  # reset count incoming
                 join_data_training_str = np.array([] , dtype=str)
