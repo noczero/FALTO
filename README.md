@@ -1,11 +1,11 @@
 # FALTO
 
 Device Setting <br />
-#define mqtt_server "192.168.1.2" <br />
-#define mqtt_port 1883 <br />
-#define device_name "FALTO_DEV01" <br />
-#define mqtt_topic_data_acc "FALTO_01/sensor/acc" <br />
-#define mqtt_topic_data_gyro "FALTO_01/sensor/gyro" <br />
+mqtt_topic_data_acc = "FALTO_01/sensor/acc" <br/>
+mqtt_topic_data_gyro = "FALTO_01/sensor/gyro" <br/>
+mqtt_topic_callibration = "FALTO_01/sensor/callib" <br/>
+mqtt_topic_callibration_gyro = "FALTO_01/sensor/callib/gyro" <br/>
+mqtt_topic_callibration_acc = "FALTO_01/sensor/callib/acc" <br/>
 
 Sampling 20Hz
 
