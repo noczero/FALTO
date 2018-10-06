@@ -9,10 +9,8 @@ import time
 import numpy as np
 from my_db import *
 
-dataset = datasets.load_iris()
 
-
-def load_model(features, label):
+def train_model(features, label):
     model_path = 'model/'
     model_name = 'naive_bayes.joblib.pkl'
     full_model_name = model_path + model_name
@@ -24,11 +22,13 @@ def load_model(features, label):
         naive_model = GaussianNB()
         naive_model.fit(features , label)
         end = time.time()
-
-        print("Trained completed! \n\t " + full_model_name + "\n" + "\t Time required : " + str(format(end-start , '2.f')) + "sec")
+        require_time = end-start
+        print("Trained completed! \n\t " + full_model_name + "\n" + "\t Time required : " + str(require_time) + " sec")
 
         #save jobpkl
         joblib.dump(naive_model, full_model_name)
+
+    return naive_model
 
 def load_dataset(path_dataset):
     file_dir = path_dataset.split('/')
@@ -82,8 +82,14 @@ def convert_data(raw_data):
 
 def main():
     path_dataset = 'dataset/fall_dataset-6-10-2018.csv'
-    load_dataset(path_dataset)
+    data_train = load_dataset(path_dataset)
+    naive_model = train_model(data_train.data , data_train.label_class)
 
+    predicted = naive_model.predict(data_train.data)
+    predict_with_proba = naive_model.predict_proba(data_train.data)
+    print()
+    print(metrics.classification_report(data_train.label_class , predicted))
+    print(metrics.confusion_matrix(data_train.label_class , predicted))
     """
     model = GaussianNB()
     model.fit(dataset.data, dataset.target)
