@@ -123,14 +123,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
     // check the pesan
     if(pesan == "walking"){
       // call walkingCalibration
-      callibration_data();      
+      callibration_data(); 
+    } else if (pesan == "stand") {
+      callibration_data();
     } else if (pesan == "sit") {
       // call sit Calibration
       callibration_data();
     } else if (pesan == "terlentang") {
       // call terlentang 
       callibration_data();
-    }
+    } 
   }
   //sendLocation=true;
 }
@@ -405,6 +407,7 @@ void loop() {
   clientRun();
   sampleRun();
 }
+
 
 
 
