@@ -11,7 +11,14 @@ import paho.mqtt.client as mqtt
 import time
 import datetime
 import csv
+import os
 import numpy as np
+from sklearn import metrics
+from sklearn.naive_bayes import GaussianNB
+from sklearn.externals import joblib
+
+
+
 
 # MQTT setup
 broker_host = "telemedicine.co.id"
@@ -23,6 +30,8 @@ mqtt_topic_callibration = "FALTO_01/sensor/callib"
 mqtt_topic_callibration_gyro = "FALTO_01/sensor/callib/gyro"
 mqtt_topic_callibration_acc = "FALTO_01/sensor/callib/acc"
 
+# model name
+model_name = 'model/naive_bayes_2.joblib.pkl'
 
 # for log file
 dt = datetime.datetime.now()
@@ -77,6 +86,14 @@ def on_message(client, userdata, message):
                 print("Data testing...")
                 #print(join_data_testing)
                 print("Length : " + str(len(join_data_testing)))
+                # testing signal
+
+                if(len(join_data_testing) == 160):
+                    result = testing_signal(model_name,join_data_testing)
+                    print("Result : " + str(result))
+                else:
+                    print("Packet not valid...")
+
                 count_incoming = 0  # reset count incoming
                 join_data_testing = np.array([], dtype=float)  # reset join_data
 
@@ -92,7 +109,12 @@ def on_message(client, userdata, message):
                 join_data_training_str = np.hstack((join_data_training_str , label_class))
                 join_data_training_str = strip_list_noempty(join_data_training_str) # remove space
                 # save to csv
-                write_tocsv(join_data_training_str,dataset_file)
+                if (len(join_data_training_str) == 161):
+                    write_tocsv(join_data_training_str, dataset_file)
+                    print("write records " , label_class)
+                else:
+                    print("Packet not valid...")
+
                 #print(join_data_training_str)
                 print("Length : " + str(len(join_data_training_str)))
                 count_incoming = 0  # reset count incoming
@@ -128,6 +150,32 @@ def convert_data(raw_data):
         features = np.hstack((features, float(raw_data[x])))
 
     return features
+
+"""
+Testing Signal
+"""
+def testing_signal(path_dir , signal):
+    """
+    Load model and test incoming signal
+    :param path_dir: directory of model
+    :param signal: list of signal
+    :return: Result of testing
+    """
+    # check model path
+
+    if os.path.isfile(path_dir):
+        naive_model = joblib.load(path_dir)
+        #data_test = np.array([], dtype=float)
+        #data_test = np.vstack((signal,signal))
+        #data_test = np.vstack((data_test,signal))
+        #print(data_test)
+        predicted = naive_model.predict(signal.reshape(1,-1))
+        pred_prob = naive_model.predict_proba(signal.reshape(1,-1))
+        print(pred_prob)
+        return predicted
+    else:
+        print("Model not found..., Train new one...")
+
 
 def on_connect(client, userdata, flags, rc):
     """
@@ -165,7 +213,7 @@ def main():
     print("IP Broker : " + broker_host +":"+ str(broker_port))
     # create client
     global clientMQTT
-    clientMQTT = mqtt.Client("server-fal")
+    clientMQTT = mqtt.Client("server-fall")
 
     # set callback
     clientMQTT.on_message = on_message

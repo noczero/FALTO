@@ -9,10 +9,9 @@ import time
 import numpy as np
 from my_db import *
 
-
 def train_model(features, label):
     model_path = 'model/'
-    model_name = 'naive_bayes.joblib.pkl'
+    model_name = 'naive_bayes_2.joblib.pkl'
     full_model_name = model_path + model_name
     if os.path.isfile(full_model_name):
         print("Already, training...\n Loading " + model_name + "...")
@@ -74,14 +73,14 @@ def convert_data(raw_data):
     # testing features
     features = np.array([], dtype=float)
     # convert to float
-    for x in range(len(raw_data) - 1):
+    for x in range(len(raw_data)):
         # print(float(signal[x]))
         features = np.hstack((features, float(raw_data[x])))
 
     return features
 
 def main():
-    path_dataset = 'dataset/fall_dataset-6-10-2018.csv'
+    path_dataset = 'dataset/fall_dataset-8-10-2018.csv'
     data_train = load_dataset(path_dataset)
     naive_model = train_model(data_train.data , data_train.label_class)
 
