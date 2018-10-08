@@ -13,17 +13,19 @@ int ixL;
 char tempLP[3];
 
 
-char ssid[] = "Pulse";//type your ssid
+char ssid[] = "FALTO";//type your ssid
 char password[] = "12345678";//type your password
 
-#define mqtt_server "telemedicine.co.id"
-#define mqtt_port 49560
+#define mqtt_server "hantamsurga.net"
+#define mqtt_port 49877
 #define device_name "FALTO_01"
 #define mqtt_topic_data_acc "FALTO_01/sensor/acc"
 #define mqtt_topic_data_gyro "FALTO_01/sensor/gyro"
 #define mqtt_topic_callibration "FALTO_01/sensor/callib"
 #define mqtt_topic_callibration_gyro "FALTO_01/sensor/callib/gyro"
 #define mqtt_topic_callibration_acc "FALTO_01/sensor/callib/acc"
+#define mqtt_topic_data_acc_unit "FALOT_01/sensor/acc/unit"
+#define mqtt_topic_data_gyro_unit "FALOT_01/sensor/gyro/unit"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -91,6 +93,7 @@ volatile uint8_t ledLV=0;
 volatile byte DND=0;
 String message_acc;
 String message_gyro;
+String unit_acc, unit_gyro;
 
 boolean sendLocation;
 unsigned long lastReconnectAttempt = 0;
@@ -207,10 +210,12 @@ void clientRun() {
         lastReconnectAttempt = 0;
       }
     }
-    Serial.println("MQTT Connecting...");
+    Serial.println("Device not connecting...");
+    LED_BLINK(50,100,3);
   } else {
     // Client connected
     //Serial.println("MQTT Connect...");
+    sampleRun();
     client.loop();
   }
 }
@@ -245,6 +250,17 @@ void sampleRun(){
         Serial.println(dB[6]); Serial.print("\t");
         Serial.println(dB[7]);
       }
+
+      // unit sending
+      unit_acc = String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":";
+      char buff_unit[unit_acc.length()+1];
+      message_acc.toCharArray(buff_unit,unit_acc.length()+1);
+      client.publish(mqtt_topic_data_acc_unit,buff_unit);
+      
+      unit_gyro = String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+String(dB[7],2)+":";
+      char buff_gyro_unit[unit_gyro.length()+1];
+      message_gyro.toCharArray(buff_gyro_unit,unit_gyro.length()+1);
+      client.publish(mqtt_topic_data_gyro_unit,buff_gyro_unit);
     
       // buffering the sensor data
       // split the sensor to 2 variable
@@ -405,13 +421,4 @@ void setup() {
 
 void loop() {
   clientRun();
-  sampleRun();
 }
-
-
-
-
-
-
-
-

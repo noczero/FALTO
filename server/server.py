@@ -21,17 +21,18 @@ from sklearn.externals import joblib
 
 
 # MQTT setup
-broker_host = "telemedicine.co.id"
-broker_port = 49560
+broker_host = "hantamsurga.net"
+broker_port = 49877
 device_name = "FALTO_01"
 mqtt_topic_data_acc = "FALTO_01/sensor/acc"
 mqtt_topic_data_gyro = "FALTO_01/sensor/gyro"
 mqtt_topic_callibration = "FALTO_01/sensor/callib"
 mqtt_topic_callibration_gyro = "FALTO_01/sensor/callib/gyro"
 mqtt_topic_callibration_acc = "FALTO_01/sensor/callib/acc"
+mqtt_topic_result = "FALTO_01/sensor/n"
 
 # model name
-model_name = 'model/naive_bayes_2.joblib.pkl'
+model_name = 'model/naive_bayes.joblib.pkl'
 
 # for log file
 dt = datetime.datetime.now()
@@ -63,7 +64,7 @@ def on_message(client, userdata, message):
     :param message:
     :return:
     """
-    global join_data_testing , count_incoming , join_data_training, join_data_training_str , label_class
+    global join_data_testing , count_incoming , join_data_training, join_data_training_str , label_class, clientMQTT
     print "message topic=", message.topic, " - qos=", message.qos, " - flag=", message.retain
     receivedMessage = str(message.payload.decode("utf-8"))
     print "received message = ", receivedMessage
@@ -90,6 +91,7 @@ def on_message(client, userdata, message):
 
                 if(len(join_data_testing) == 160):
                     result = testing_signal(model_name,join_data_testing)
+                    clientMQTT.publish("")
                     print("Result : " + str(result))
                 else:
                     print("Packet not valid...")
