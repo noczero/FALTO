@@ -1,11 +1,26 @@
 # FALTO
 
 Device Setting <br />
+
+stream data sampling : <br/>
 mqtt_topic_data_acc = "FALTO_01/sensor/acc" <br/>
 mqtt_topic_data_gyro = "FALTO_01/sensor/gyro" <br/>
+
+send command to do callibration <br/>
 mqtt_topic_callibration = "FALTO_01/sensor/callib" <br/>
+payload command :
+- walking
+- stand
+- sit
+- terlentang
+
+stream data on callibration <br/>
 mqtt_topic_callibration_gyro = "FALTO_01/sensor/callib/gyro" <br/>
 mqtt_topic_callibration_acc = "FALTO_01/sensor/callib/acc" <br/>
+
+stream data realtime : <br/>
+mqtt_topic_callibration_acc_unit = "FALTO_01/sensor/callib/acc/unit <br/>
+mqtt_topic_callibration_gyro_unit = "FALTO_01/sensor/callib/gyro/unit <br/>
 
 Sampling 20Hz
 
