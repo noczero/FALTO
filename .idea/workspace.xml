@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9d8e467e-32fd-4c83-ad0b-555678df02eb" name="Default" comment="try to train dataset">
-      <change afterPath="$PROJECT_DIR$/server/test_svm.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/train_svm.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fallDevice/fallDevice.ino/fallDevice.ino.ino" beforeDir="false" afterPath="$PROJECT_DIR$/fallDevice/fallDevice.ino/fallDevice.ino.ino" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/dataset/fall_prediction-8-10-2018.csv" beforeDir="false" afterPath="$PROJECT_DIR$/server/dataset/fall_prediction-8-10-2018.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/server.py" afterDir="false" />
-    </list>
+    <list default="true" id="9d8e467e-32fd-4c83-ad0b-555678df02eb" name="Default" comment="try to train dataset" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -21,7 +14,7 @@
       <file leaf-file-name="server.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/server/server.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
+            <state relative-caret-position="-493">
               <caret line="93" column="40" lean-forward="true" selection-start-line="93" selection-start-column="40" selection-end-line="93" selection-end-column="40" />
               <folding>
                 <element signature="e#120#151#0" expanded="true" />
@@ -514,7 +507,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/server/server.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
+        <state relative-caret-position="-493">
           <caret line="93" column="40" lean-forward="true" selection-start-line="93" selection-start-column="40" selection-end-line="93" selection-end-column="40" />
           <folding>
             <element signature="e#120#151#0" expanded="true" />

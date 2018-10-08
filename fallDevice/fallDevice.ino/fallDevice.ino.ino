@@ -24,8 +24,8 @@ char password[] = "12345678";//type your password
 #define mqtt_topic_callibration "FALTO_01/sensor/callib"
 #define mqtt_topic_callibration_gyro "FALTO_01/sensor/callib/gyro"
 #define mqtt_topic_callibration_acc "FALTO_01/sensor/callib/acc"
-#define mqtt_topic_data_acc_unit "FALOT_01/sensor/acc/unit"
-#define mqtt_topic_data_gyro_unit "FALOT_01/sensor/gyro/unit"
+#define mqtt_topic_data_acc_unit "FALTO_01/sensor/acc/unit"
+#define mqtt_topic_data_gyro_unit "FALTO_01/sensor/gyro/unit"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
