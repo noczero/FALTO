@@ -33,7 +33,7 @@ mqtt_topic_callibration_ftsts = device_name  + "/sensor/callib/ftsts"
 # model name
 # 5 agak best
 model_name = 'model/knn.joblib.pkl'
-model_name_regression = 'model/svm_regression_2.joblib.pkl'
+model_name_regression = 'model/knn_regression_25.joblib.pkl'
 
 # for log file
 dt = datetime.datetime.now()
