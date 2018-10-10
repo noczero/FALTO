@@ -17,28 +17,30 @@ from sklearn import metrics
 from sklearn.naive_bayes import GaussianNB
 from sklearn.externals import joblib
 
-
-
-
 # MQTT setup
-broker_host = "hantamsurga.net"
+broker_host = "192.168.43.2"
 broker_port = 49877
-device_name = "FALTO_01"
-mqtt_topic_data_acc = "FALTO_01/sensor/acc"
-mqtt_topic_data_gyro = "FALTO_01/sensor/gyro"
-mqtt_topic_callibration = "FALTO_01/sensor/callib"
-mqtt_topic_callibration_gyro = "FALTO_01/sensor/callib/gyro"
-mqtt_topic_callibration_acc = "FALTO_01/sensor/callib/acc"
-mqtt_topic_result = "FALTO_01/sensor/n"
+device_name = "FALTO_02"
+mqtt_topic_data_acc = device_name  + "/sensor/acc"
+mqtt_topic_data_gyro = device_name  + "/sensor/gyro"
+mqtt_topic_callibration = device_name + "/sensor/callib"
+mqtt_topic_callibration_gyro = device_name  + "/sensor/callib/gyro"
+mqtt_topic_callibration_acc = device_name  + "/sensor/callib/acc"
+mqtt_topic_result_prob = device_name + "/sensor/p"
+mqtt_topic_result = device_name  + "/sensor/n"
+mqtt_topic_callibration_ftsts = device_name  + "/sensor/callib/ftsts"
 
 # model name
-model_name = 'model/naive_bayes.joblib.pkl'
+# 5 agak best
+model_name = 'model/knn.joblib.pkl'
+model_name_regression = 'model/svm_regression_2.joblib.pkl'
 
 # for log file
 dt = datetime.datetime.now()
 path = 'dataset/'
 logfile = 'fall_prediction-%s-%s-%s.csv' % (dt.day, dt.month, dt.year)
-dataset_file = 'fall_dataset-%s-%s-%s.csv' % (dt.day, dt.month, dt.year)
+dataset_file_classification= 'fall_dataset_classification-%s-%s-%s-%s.csv' % (dt.day, dt.month, dt.year, dt.second)
+dataset_file_regression= 'fall_dataset_regression-%s-%s-%s-%s.csv' % (dt.day, dt.month, dt.year , dt.second)
 
 # csvwrite
 def write_tocsv(data , file) :
@@ -55,6 +57,8 @@ count_incoming = 1
 join_data_testing = np.array([], dtype=float)
 join_data_training_str = np.array([] , dtype=str)
 label_class = ''
+label_regression = 0
+classification_status = False
 
 def on_message(client, userdata, message):
     """
@@ -64,14 +68,23 @@ def on_message(client, userdata, message):
     :param message:
     :return:
     """
-    global join_data_testing , count_incoming , join_data_training, join_data_training_str , label_class, clientMQTT
+    global join_data_testing , count_incoming , join_data_training, join_data_training_str , label_class, clientMQTT, classification_status, label_regression
     print "message topic=", message.topic, " - qos=", message.qos, " - flag=", message.retain
     receivedMessage = str(message.payload.decode("utf-8"))
     print "received message = ", receivedMessage
 
     if (message.topic == mqtt_topic_callibration):
-        label_class = define_class(receivedMessage)
-        print(label_class)
+        if(receivedMessage == "reg"):
+            print("Regression model, please input the fall status : 0 - 1")
+            # label_regression =
+            label_regression = raw_input("Probability : ") # return string
+            print("Label Regression : " + label_regression)
+            classification_status = False
+        else:
+            print("Classification model")
+            label_class = define_class(receivedMessage) # define class
+            print(label_class)
+            classification_status = True
     else:
         signal = receivedMessage.split(':')
         # print(signal)
@@ -90,8 +103,11 @@ def on_message(client, userdata, message):
                 # testing signal
 
                 if(len(join_data_testing) == 160):
-                    result = testing_signal(model_name,join_data_testing)
-                    clientMQTT.publish("")
+                    result = testing_signal(model_name,join_data_testing) # classfication
+                    probability = testing_signal(model_name_regression,join_data_testing) # regression
+                    # publish
+                    clientMQTT.publish(mqtt_topic_result , str(result))
+                    clientMQTT.publish(mqtt_topic_result_prob , str(probability))
                     print("Result : " + str(result))
                 else:
                     print("Packet not valid...")
@@ -108,12 +124,25 @@ def on_message(client, userdata, message):
             if (count_incoming == 2):
                 print("One records... acc + gyro")
                 print("Data Training... ")
-                join_data_training_str = np.hstack((join_data_training_str , label_class))
+
+                # check for classify or regression
+                if(classification_status):
+                    join_data_training_str = np.hstack((join_data_training_str , label_class))
+                else:
+                    join_data_training_str = np.hstack((join_data_training_str , label_regression))
+
                 join_data_training_str = strip_list_noempty(join_data_training_str) # remove space
                 # save to csv
                 if (len(join_data_training_str) == 161):
-                    write_tocsv(join_data_training_str, dataset_file)
-                    print("write records " , label_class)
+
+                    # check for classify or regression
+                    if(classification_status):
+                        write_tocsv(join_data_training_str, dataset_file_classification)
+                        print("Classfication.. write records ", label_class)
+                    else:
+                        write_tocsv(join_data_training_str, dataset_file_regression)
+                        print("Regression.. write records ", label_regression)
+
                 else:
                     print("Packet not valid...")
 
@@ -121,6 +150,7 @@ def on_message(client, userdata, message):
                 print("Length : " + str(len(join_data_training_str)))
                 count_incoming = 0  # reset count incoming
                 join_data_training_str = np.array([] , dtype=str)
+
 
         # outer
         count_incoming = count_incoming + 1 # count for 2 incoming data
@@ -166,14 +196,14 @@ def testing_signal(path_dir , signal):
     # check model path
 
     if os.path.isfile(path_dir):
-        naive_model = joblib.load(path_dir)
+        model = joblib.load(path_dir)
         #data_test = np.array([], dtype=float)
         #data_test = np.vstack((signal,signal))
         #data_test = np.vstack((data_test,signal))
         #print(data_test)
-        predicted = naive_model.predict(signal.reshape(1,-1))
-        pred_prob = naive_model.predict_proba(signal.reshape(1,-1))
-        print(pred_prob)
+        predicted = model.predict(signal.reshape(1,-1))
+        #pred_prob = model.predict_proba(signal.reshape(1,-1))
+        #print(pred_prob)
         return predicted
     else:
         print("Model not found..., Train new one...")
@@ -212,10 +242,10 @@ def on_connect(client, userdata, flags, rc):
 def main():
     # mqtt instance
     print("Server starting...")
-    print("IP Broker : " + broker_host +":"+ str(broker_port))
+    print("IP Broker : " + broker_host + ":" + str(broker_port))
     # create client
     global clientMQTT
-    clientMQTT = mqtt.Client("server-fall")
+    clientMQTT = mqtt.Client("server_fall_3")
 
     # set callback
     clientMQTT.on_message = on_message

@@ -16,16 +16,16 @@ char tempLP[3];
 char ssid[] = "FALTO";//type your ssid
 char password[] = "12345678";//type your password
 
-#define mqtt_server "hantamsurga.net"
+#define mqtt_server "192.168.43.2"
 #define mqtt_port 49877
-#define device_name "FALTO_01"
-#define mqtt_topic_data_acc "FALTO_01/sensor/acc"
-#define mqtt_topic_data_gyro "FALTO_01/sensor/gyro"
-#define mqtt_topic_callibration "FALTO_01/sensor/callib"
-#define mqtt_topic_callibration_gyro "FALTO_01/sensor/callib/gyro"
-#define mqtt_topic_callibration_acc "FALTO_01/sensor/callib/acc"
-#define mqtt_topic_data_acc_unit "FALTO_01/sensor/acc/unit"
-#define mqtt_topic_data_gyro_unit "FALTO_01/sensor/gyro/unit"
+#define device_name "FALTO_02"
+#define mqtt_topic_data_acc "FALTO_02/sensor/acc"
+#define mqtt_topic_data_gyro "FALTO_02/sensor/gyro"
+#define mqtt_topic_callibration "FALTO_02/sensor/callib"
+#define mqtt_topic_callibration_gyro "FALTO_02/sensor/callib/gyro"
+#define mqtt_topic_callibration_acc "FALTO_02/sensor/callib/acc"
+#define mqtt_topic_data_acc_unit "FALTO_02/sensor/acc/unit"
+#define mqtt_topic_data_gyro_unit "FALTO_02/sensor/gyro/unit"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -135,7 +135,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else if (pesan == "terlentang") {
       // call terlentang 
       callibration_data();
-    } 
+    } else if (pesan == "reg") {
+      callibration_data();
+    }
   }
   //sendLocation=true;
 }
@@ -254,12 +256,12 @@ void sampleRun(){
       // unit sending
       unit_acc = String(dB[0],2)+":"+String(dB[1],2)+":"+String(dB[2],2)+":"+String(dB[3],2)+":";
       char buff_unit[unit_acc.length()+1];
-      message_acc.toCharArray(buff_unit,unit_acc.length()+1);
+      unit_acc.toCharArray(buff_unit,unit_acc.length()+1);
       client.publish(mqtt_topic_data_acc_unit,buff_unit);
       
       unit_gyro = String(dB[4],2)+":"+String(dB[5],2)+":"+String(dB[6],2)+":"+String(dB[7],2)+":";
       char buff_gyro_unit[unit_gyro.length()+1];
-      message_gyro.toCharArray(buff_gyro_unit,unit_gyro.length()+1);
+      unit_gyro.toCharArray(buff_gyro_unit,unit_gyro.length()+1);
       client.publish(mqtt_topic_data_gyro_unit,buff_gyro_unit);
     
       // buffering the sensor data

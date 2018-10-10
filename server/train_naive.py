@@ -9,9 +9,13 @@ import time
 import numpy as np
 from my_db import *
 
+# change
+model_name = 'naive_bayes_gabungan.joblib.pkl'
+path_dataset = 'dataset/fall_dataset_gabungan.csv'
+
 def train_model(features, label):
     model_path = 'model/'
-    model_name = 'naive_bayes_2.joblib.pkl'
+   # model_name = 'naive_bayes_6.joblib.pkl' # save name for model
     full_model_name = model_path + model_name
     if os.path.isfile(full_model_name):
         print("Already, training...\n Loading " + model_name + "...")
@@ -80,7 +84,7 @@ def convert_data(raw_data):
     return features
 
 def main():
-    path_dataset = 'dataset/fall_dataset-8-10-2018.csv'
+    #path_dataset = 'dataset/fall_dataset_gabungan.csv' # change with dataset
     data_train = load_dataset(path_dataset)
     naive_model = train_model(data_train.data , data_train.label_class)
 

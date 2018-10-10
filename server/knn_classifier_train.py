@@ -1,6 +1,6 @@
 from sklearn import datasets, metrics
-from sklearn.naive_bayes import GaussianNB
-from sklearn import svm
+from sklearn.neighbors import KNeighborsClassifier
+#from sklearn import svm
 import cPickle as pickle
 from sklearn.externals import joblib
 import os
@@ -10,8 +10,8 @@ import time
 import numpy as np
 from my_db import *
 
-model_name = 'svm_regression_2.joblib.pkl'
-path_dataset = 'dataset/fall_dataset_regression-11-10-2018-49.csv'
+model_name = 'knn.joblib.pkl'
+path_dataset = 'dataset/fall_dataset_gabungan.csv'
 
 def train_model(features, label):
     model_path = 'model/'
@@ -19,19 +19,19 @@ def train_model(features, label):
     full_model_name = model_path + model_name
     if os.path.isfile(full_model_name):
         print("Already, training...\n Loading " + model_name + "...")
-        svm_model = joblib.load(full_model_name)
+        knn = joblib.load(full_model_name)
     else:
         start = time.time()
-        svm_model = svm.SVR()
-        svm_model.fit(features , label)
+        knn = KNeighborsClassifier(n_neighbors=3)
+        knn.fit(features , label)
         end = time.time()
         require_time = end-start
         print("Trained completed! \n\t " + full_model_name + "\n" + "\t Time required : " + str(require_time) + " sec")
 
         #save jobpkl
-        joblib.dump(svm_model, full_model_name)
+        joblib.dump(knn, full_model_name)
 
-    return svm_model
+    return knn
 
 def load_dataset(path_dataset):
     file_dir = path_dataset.split('/')
