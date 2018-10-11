@@ -8,19 +8,17 @@
 """
 
 import paho.mqtt.client as mqtt
-import time
 import datetime
 import csv
 import os
 import numpy as np
-from sklearn import metrics
-from sklearn.naive_bayes import GaussianNB
+
 from sklearn.externals import joblib
 
 # MQTT setup
 broker_host = "192.168.43.2"
 broker_port = 49877
-device_name = "FALTO_02"
+device_name = "FALTO_01"
 mqtt_topic_data_acc = device_name  + "/sensor/acc"
 mqtt_topic_data_gyro = device_name  + "/sensor/gyro"
 mqtt_topic_callibration = device_name + "/sensor/callib"

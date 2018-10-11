@@ -1,5 +1,6 @@
 from sklearn import datasets, metrics
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn import model_selection
 #from sklearn import svm
 import cPickle as pickle
 from sklearn.externals import joblib
@@ -86,15 +87,23 @@ def convert_data(raw_data):
 def main():
     # path_dataset = 'dataset/fall_dataset_regression-11-10-2018.csv'
     data_train = load_dataset(path_dataset)
-    svm_model = train_model(data_train.data , data_train.label_class)
+    knn = train_model(data_train.data , data_train.label_class)
 
-    predicted = svm_model.predict(data_train.data)
+    predicted = knn.predict(data_train.data)
     #predict_with_proba = svm_model.predict_proba(data_train.data)
     # print()
     # print(metrics.classification_report(data_train.label_class , predicted))
     # print(metrics.confusion_matrix(data_train.label_class , predicted))
     print(predicted)
-    print(svm_model.score(data_train.data , data_train.label_class))
+    print(knn.score(data_train.data , data_train.label_class))
+
+    print("Evaluation...")
+
+    seed = 7
+    kfold = model_selection.KFold(n_splits=3, random_state=seed)
+
+    results = model_selection.cross_val_score(knn, data_train.data, data_train.label_class, cv=kfold)
+    print("Accuracy : " + str(results.mean()))
 
     """
     model = GaussianNB()

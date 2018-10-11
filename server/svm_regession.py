@@ -1,6 +1,6 @@
 from sklearn import datasets, metrics
-from sklearn.neighbors import KNeighborsRegressor
-#from sklearn import svm
+from sklearn.naive_bayes import GaussianNB
+from sklearn import svm , model_selection
 import cPickle as pickle
 from sklearn.externals import joblib
 import os
@@ -10,7 +10,7 @@ import time
 import numpy as np
 from my_db import *
 
-model_name = 'knn_regression_25.joblib.pkl'
+model_name = 'svm_regression_3.joblib.pkl'
 path_dataset = 'dataset/fall_dataset_regression-11-10-2018-25.csv'
 
 def train_model(features, label):
@@ -19,19 +19,19 @@ def train_model(features, label):
     full_model_name = model_path + model_name
     if os.path.isfile(full_model_name):
         print("Already, training...\n Loading " + model_name + "...")
-        knn = joblib.load(full_model_name)
+        svm_model = joblib.load(full_model_name)
     else:
         start = time.time()
-        knn = KNeighborsRegressor(n_neighbors=3)
-        knn.fit(features , label)
+        svm_model = svm.SVR()
+        svm_model.fit(features , label)
         end = time.time()
         require_time = end-start
         print("Trained completed! \n\t " + full_model_name + "\n" + "\t Time required : " + str(require_time) + " sec")
 
         #save jobpkl
-        joblib.dump(knn, full_model_name)
+        joblib.dump(svm_model, full_model_name)
 
-    return knn
+    return svm_model
 
 def load_dataset(path_dataset):
     file_dir = path_dataset.split('/')
@@ -86,18 +86,18 @@ def convert_data(raw_data):
 def main():
     # path_dataset = 'dataset/fall_dataset_regression-11-10-2018.csv'
     data_train = load_dataset(path_dataset)
-    knn_reg = train_model(data_train.data , data_train.label_class)
+    svm_model = train_model(data_train.data , data_train.label_class)
 
-    predicted = knn_reg.predict(data_train.data)
+    predicted = svm_model.predict(data_train.data)
     #predict_with_proba = svm_model.predict_proba(data_train.data)
     # print()
     # print(metrics.classification_report(data_train.label_class , predicted))
     # print(metrics.confusion_matrix(data_train.label_class , predicted))
     print(predicted)
-    print(knn_reg.score(data_train.data , data_train.label_class))
+    print(svm_model.score(data_train.data , data_train.label_class))
 
-    print("R2 Score : ")
-    print(metrics.r2_score(data_train.label_class , predicted))
+
+
     """
     model = GaussianNB()
     model.fit(dataset.data, dataset.target)

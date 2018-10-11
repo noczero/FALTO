@@ -1,4 +1,4 @@
-from sklearn import datasets, metrics
+from sklearn import datasets, metrics , model_selection
 from sklearn.naive_bayes import GaussianNB
 from sklearn import svm
 import cPickle as pickle
@@ -93,6 +93,15 @@ def main():
     print()
     print(metrics.classification_report(data_train.label_class , predicted))
     print(metrics.confusion_matrix(data_train.label_class , predicted))
+
+    print("Evaluation...")
+
+    seed = 7
+    kfold = model_selection.KFold(n_splits=3, random_state=seed)
+
+    results = model_selection.cross_val_score(svm_classify, data_train.data, data_train.label_class, cv=kfold)
+    print("Accuracy : " + str(results.mean()))
+
     """
     model = GaussianNB()
     model.fit(dataset.data, dataset.target)
